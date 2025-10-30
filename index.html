@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Game Card Helper</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Board Game Card Helper</h1>
+        
+        <!-- Persistent Cards Area - Top Right -->
+        <div class="persistent-cards-top" id="persistentCardsTop">
+            <h3 class="persistent-title">Active Effects (Top)</h3>
+            <div class="persistent-cards-container" id="persistentCardsTopContainer"></div>
+        </div>
+
+        <!-- Persistent Cards Area - Bottom Right -->
+        <div class="persistent-cards-bottom" id="persistentCardsBottom">
+            <h3 class="persistent-title">Active Effects (Bottom)</h3>
+            <div class="persistent-cards-container" id="persistentCardsBottomContainer"></div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Targets Section -->
+            <div class="deck-section-wrapper">
+                <h2 class="deck-title">Targets</h2>
+                <div class="game-area">
+                    <!-- Current Card Display with Counter and Controls -->
+                    <div class="targets-card-and-controls">
+                        <div class="counter-section">
+                            <div class="counter-display" id="targetsCounter">0</div>
+                            <button id="targetsIncrementBtn" class="btn btn-counter" title="Increment counter">+1</button>
+                            <button id="targetsResetCounterBtn" class="btn btn-counter-reset" title="Reset counter">Reset</button>
+                        </div>
+                        
+                        <div class="targets-center-column">
+                            <!-- Deck Section -->
+                            <div class="deck-section">
+                                <div class="deck-container">
+                                    <div class="deck" id="targetsDeck">
+                                        <div class="card-back targets-back"></div>
+                                        <div class="cards-left-banner" id="targetsCardsLeftBanner">
+                                            <span id="targetsCardsLeftCount">24</span> cards left
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="current-card" id="targetsCurrentCard">
+                                <div class="card-placeholder">
+                                    Click "Flip Card" to start
+                                </div>
+                            </div>
+                            <!-- Control Buttons -->
+                            <div class="controls">
+                                <button id="targetsFlipCardBtn" class="btn btn-primary">Flip Card</button>
+                                <button id="targetsResetBtn" class="btn btn-secondary">Reset Deck</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Info -->
+                <div class="game-info">
+                    <p>Cards flipped: <span id="targetsCardsFlipped">0</span></p>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="section-divider"></div>
+
+            <!-- Events Section -->
+            <div class="deck-section-wrapper">
+                <h2 class="deck-title">Events</h2>
+                <div class="game-area">
+                    <!-- Current Card Display with Keep Buttons and Controls -->
+                    <div class="events-card-and-controls">
+                        <div class="events-center-column">
+                            <!-- Deck Section -->
+                            <div class="deck-section">
+                                <div class="deck-container">
+                                    <div class="deck" id="eventsDeck">
+                                        <div class="card-back events-back"></div>
+                                        <div class="cards-left-banner" id="eventsCardsLeftBanner">
+                                            <span id="eventsCardsLeftCount">57</span> cards left
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="current-card" id="eventsCurrentCard">
+                                <div class="card-placeholder">
+                                    Click "Flip Card" to start
+                                </div>
+                            </div>
+                            <!-- Control Buttons -->
+                            <div class="controls">
+                                <button id="eventsFlipCardBtn" class="btn btn-primary">Flip Card</button>
+                                <button id="eventsResetBtn" class="btn btn-secondary">Reset Deck</button>
+                            </div>
+                        </div>
+                        
+                        <div class="keep-buttons-vertical">
+                            <button id="eventsKeepTopBtn" class="btn btn-keep-vertical" title="Keep card in top area">↗ Top</button>
+                            <button id="eventsKeepBottomBtn" class="btn btn-keep-vertical" title="Keep card in bottom area">↘ Bottom</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Info -->
+                <div class="game-info">
+                    <p>Cards flipped: <span id="eventsCardsFlipped">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Global Undo Button -->
+        <div class="global-undo-container">
+            <button id="globalUndoBtn" class="btn btn-undo" disabled title="Undo last operation">↶ Undo</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

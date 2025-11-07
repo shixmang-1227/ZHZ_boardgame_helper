@@ -126,6 +126,10 @@ class UndoManager {
 // Create global undo manager instance
 const undoManager = new UndoManager();
 
+// Global deck instances for cross-deck communication
+let targetsDeckUI = null;
+let eventsDeckUI = null;
+
 // Card deck management
 class CardDeck {
     constructor(cardData, cardType) {
@@ -185,7 +189,6 @@ class DeckUI {
         this.currentCardElement = document.getElementById(`${deckType}CurrentCard`);
         this.cardsLeftCount = document.getElementById(`${deckType}CardsLeftCount`);
         this.cardsFlippedCount = document.getElementById(`${deckType}CardsFlipped`);
-        this.flipCardBtn = document.getElementById(`${deckType}FlipCardBtn`);
         this.resetBtn = document.getElementById(`${deckType}ResetBtn`);
         this.deckElement = document.getElementById(`${deckType}Deck`);
         
@@ -209,7 +212,6 @@ class DeckUI {
     }
 
     initializeEventListeners() {
-        this.flipCardBtn.addEventListener('click', () => this.handleFlipCard());
         this.resetBtn.addEventListener('click', () => this.handleReset());
         this.deckElement.addEventListener('click', () => this.handleFlipCard());
         
@@ -273,6 +275,34 @@ class DeckUI {
         const previousCard = this.currentCard;
         const previousHTML = this.currentCardElement.innerHTML;
         
+        // Store previous counter value for undo
+        let previousTargetsCounter = null;
+        if (this.deckType === 'targets') {
+            previousTargetsCounter = this.counter;
+        }
+        
+        // If this is Events deck, also increment Targets counter
+        if (this.deckType === 'events' && targetsDeckUI) {
+            if (previousTargetsCounter === null) {
+                previousTargetsCounter = targetsDeckUI.counter;
+            }
+            targetsDeckUI.counter++;
+            targetsDeckUI.counterDisplay.textContent = targetsDeckUI.counter;
+            
+            // Auto-flip Targets when counter reaches 7
+            if (targetsDeckUI.counter >= 7) {
+                targetsDeckUI.counter = 0;
+                targetsDeckUI.counterDisplay.textContent = targetsDeckUI.counter;
+                targetsDeckUI.handleFlipCard();
+            }
+        }
+        
+        // If this is Targets deck, reset counter to 0
+        if (this.deckType === 'targets') {
+            this.counter = 0;
+            this.counterDisplay.textContent = this.counter;
+        }
+        
         // Push undo operation
         undoManager.pushOperation({
             undo: () => {
@@ -283,6 +313,17 @@ class DeckUI {
                 // Restore previous card state
                 this.currentCard = previousCard;
                 this.currentCardElement.innerHTML = previousHTML;
+                
+                // Restore Targets counter
+                if (previousTargetsCounter !== null) {
+                    if (this.deckType === 'targets') {
+                        this.counter = previousTargetsCounter;
+                        this.counterDisplay.textContent = this.counter;
+                    } else if (targetsDeckUI) {
+                        targetsDeckUI.counter = previousTargetsCounter;
+                        targetsDeckUI.counterDisplay.textContent = targetsDeckUI.counter;
+                    }
+                }
                 
                 this.updateUI();
                 this.updateKeepButtons();
@@ -321,7 +362,7 @@ class DeckUI {
         });
         
         // Clear the current card display
-        this.showMessage('Card saved! Click "Flip Card" to continue.');
+        this.showMessage('Card saved! Click deck to continue.');
         this.currentCard = null;
         this.updateKeepButtons();
     }
@@ -489,7 +530,7 @@ class DeckUI {
         }
         
         this.updateUI();
-        this.showMessage('Click "Flip Card" to start');
+        this.showMessage('Click deck to start');
         this.updateKeepButtons();
         
         // Add a brief animation to the deck
@@ -539,21 +580,141 @@ class DeckUI {
         this.cardsLeftCount.textContent = cardsLeft;
         this.cardsFlippedCount.textContent = cardsFlipped;
         
-        // Disable flip button if no cards left
-        this.flipCardBtn.disabled = cardsLeft === 0;
-        
         // Update deck visibility
         if (cardsLeft === 0) {
             this.deckElement.style.opacity = '0.5';
+            this.deckElement.style.cursor = 'not-allowed';
         } else {
             this.deckElement.style.opacity = '1';
+            this.deckElement.style.cursor = 'pointer';
         }
     }
+}
+
+// Score Tracker Class
+class ScoreTracker {
+    constructor() {
+        this.topScore = 3;
+        this.bottomScore = 3;
+        this.topScoreDisplay = document.getElementById('topPlayerScore');
+        this.bottomScoreDisplay = document.getElementById('bottomPlayerScore');
+        this.topPlusBtn = document.getElementById('topPlayerPlusBtn');
+        this.topMinusBtn = document.getElementById('topPlayerMinusBtn');
+        this.bottomPlusBtn = document.getElementById('bottomPlayerPlusBtn');
+        this.bottomMinusBtn = document.getElementById('bottomPlayerMinusBtn');
+        
+        this.initializeEventListeners();
+        this.updateDisplay();
+    }
+    
+    initializeEventListeners() {
+        this.topPlusBtn.addEventListener('click', () => this.changeScore('top', 1));
+        this.topMinusBtn.addEventListener('click', () => this.changeScore('top', -1));
+        this.bottomPlusBtn.addEventListener('click', () => this.changeScore('bottom', 1));
+        this.bottomMinusBtn.addEventListener('click', () => this.changeScore('bottom', -1));
+    }
+    
+    changeScore(player, delta) {
+        const previousTopScore = this.topScore;
+        const previousBottomScore = this.bottomScore;
+        
+        if (player === 'top') {
+            this.topScore += delta;
+        } else {
+            this.bottomScore += delta;
+        }
+        
+        // Push undo operation
+        undoManager.pushOperation({
+            undo: () => {
+                this.topScore = previousTopScore;
+                this.bottomScore = previousBottomScore;
+                this.updateDisplay();
+            }
+        });
+        
+        this.updateDisplay();
+        this.checkWinCondition();
+    }
+    
+    updateDisplay() {
+        this.topScoreDisplay.textContent = this.topScore;
+        this.bottomScoreDisplay.textContent = this.bottomScore;
+    }
+    
+    checkWinCondition() {
+        if (this.topScore >= 10) {
+            this.showWinPopup('Top Player');
+        } else if (this.bottomScore >= 10) {
+            this.showWinPopup('Bottom Player');
+        }
+    }
+    
+    showWinPopup(winner) {
+        alert(`🎉 ${winner} wins! 🎉\n\nFinal Score:\nTop Player: ${this.topScore}\nBottom Player: ${this.bottomScore}`);
+    }
+    
+    reset() {
+        const previousTopScore = this.topScore;
+        const previousBottomScore = this.bottomScore;
+        
+        this.topScore = 3;
+        this.bottomScore = 3;
+        this.updateDisplay();
+        
+        // Don't push undo for reset all
+    }
+}
+
+// Global score tracker instance
+let scoreTracker = null;
+
+// Reset all function
+function resetAll() {
+    // Reset both decks
+    if (targetsDeckUI) {
+        targetsDeckUI.deck.deck = [...TARGETS_DATA];
+        targetsDeckUI.deck.flippedCards = [];
+        targetsDeckUI.deck.shuffleDeck();
+        targetsDeckUI.currentCard = null;
+        targetsDeckUI.counter = 0;
+        targetsDeckUI.counterDisplay.textContent = targetsDeckUI.counter;
+        targetsDeckUI.showMessage('Click deck to start');
+        targetsDeckUI.updateUI();
+        targetsDeckUI.updateKeepButtons();
+    }
+    
+    if (eventsDeckUI) {
+        eventsDeckUI.deck.deck = [...EVENTS_DATA];
+        eventsDeckUI.deck.flippedCards = [];
+        eventsDeckUI.deck.shuffleDeck();
+        eventsDeckUI.currentCard = null;
+        eventsDeckUI.persistentTopContainer.innerHTML = '';
+        eventsDeckUI.persistentBottomContainer.innerHTML = '';
+        eventsDeckUI.showMessage('Click deck to start');
+        eventsDeckUI.updateUI();
+        eventsDeckUI.updateKeepButtons();
+    }
+    
+    // Reset score tracker
+    if (scoreTracker) {
+        scoreTracker.reset();
+    }
+    
+    // Clear undo stack
+    undoManager.clear();
 }
 
 // Initialize both decks when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     undoManager.initialize();
-    new DeckUI('targets', TARGETS_DATA);
-    new DeckUI('events', EVENTS_DATA);
+    targetsDeckUI = new DeckUI('targets', TARGETS_DATA);
+    eventsDeckUI = new DeckUI('events', EVENTS_DATA);
+    scoreTracker = new ScoreTracker();
+    
+    // Initialize Reset All button
+    const resetAllBtn = document.getElementById('globalResetAllBtn');
+    if (resetAllBtn) {
+        resetAllBtn.addEventListener('click', resetAll);
+    }
 });

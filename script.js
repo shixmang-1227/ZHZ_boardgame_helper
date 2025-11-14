@@ -666,6 +666,147 @@ class ScoreTracker {
     }
 }
 
+// Additional Counters Class
+class AdditionalCounters {
+    constructor() {
+        this.counters = {
+            counter1Top: 0,
+            counter1Bottom: 0,
+            counter2Top: 0,
+            counter2Bottom: 0,
+            counter3Top: 0,
+            counter3Bottom: 0,
+            counter4Top: 0,
+            counter4Bottom: 0,
+            counter5Top: 0,
+            counter5Bottom: 0
+        };
+        
+        this.displays = {
+            counter1Top: document.getElementById('counter1Top'),
+            counter1Bottom: document.getElementById('counter1Bottom'),
+            counter2Top: document.getElementById('counter2Top'),
+            counter2Bottom: document.getElementById('counter2Bottom'),
+            counter3Top: document.getElementById('counter3Top'),
+            counter3Bottom: document.getElementById('counter3Bottom'),
+            counter4Top: document.getElementById('counter4Top'),
+            counter4Bottom: document.getElementById('counter4Bottom'),
+            counter5Top: document.getElementById('counter5Top'),
+            counter5Bottom: document.getElementById('counter5Bottom')
+        };
+        
+        this.initializeEventListeners();
+        this.updateAllDisplays();
+    }
+    
+    initializeEventListeners() {
+        // Counter 1 Top
+        document.getElementById('counter1TopPlusBtn').addEventListener('click', () => 
+            this.incrementCounter('counter1Top'));
+        document.getElementById('counter1TopResetBtn').addEventListener('click', () => 
+            this.resetCounter('counter1Top'));
+        
+        // Counter 1 Bottom
+        document.getElementById('counter1BottomPlusBtn').addEventListener('click', () => 
+            this.incrementCounter('counter1Bottom'));
+        document.getElementById('counter1BottomResetBtn').addEventListener('click', () => 
+            this.resetCounter('counter1Bottom'));
+        
+        // Counter 2 Top
+        document.getElementById('counter2TopPlusBtn').addEventListener('click', () => 
+            this.incrementCounter('counter2Top'));
+        document.getElementById('counter2TopResetBtn').addEventListener('click', () => 
+            this.resetCounter('counter2Top'));
+        
+        // Counter 2 Bottom
+        document.getElementById('counter2BottomPlusBtn').addEventListener('click', () => 
+            this.incrementCounter('counter2Bottom'));
+        document.getElementById('counter2BottomResetBtn').addEventListener('click', () => 
+            this.resetCounter('counter2Bottom'));
+        
+        // Counter 3 Top
+        document.getElementById('counter3TopPlusBtn').addEventListener('click', () => 
+            this.incrementCounter('counter3Top'));
+        document.getElementById('counter3TopResetBtn').addEventListener('click', () => 
+            this.resetCounter('counter3Top'));
+        
+        // Counter 3 Bottom
+        document.getElementById('counter3BottomPlusBtn').addEventListener('click', () =>
+            this.incrementCounter('counter3Bottom'));
+        document.getElementById('counter3BottomResetBtn').addEventListener('click', () =>
+            this.resetCounter('counter3Bottom'));
+        
+        // Counter 4 Top
+        document.getElementById('counter4TopPlusBtn').addEventListener('click', () =>
+            this.incrementCounter('counter4Top'));
+        document.getElementById('counter4TopResetBtn').addEventListener('click', () =>
+            this.resetCounter('counter4Top'));
+        
+        // Counter 4 Bottom
+        document.getElementById('counter4BottomPlusBtn').addEventListener('click', () =>
+            this.incrementCounter('counter4Bottom'));
+        document.getElementById('counter4BottomResetBtn').addEventListener('click', () =>
+            this.resetCounter('counter4Bottom'));
+        
+        // Counter 5 Top
+        document.getElementById('counter5TopPlusBtn').addEventListener('click', () =>
+            this.incrementCounter('counter5Top'));
+        document.getElementById('counter5TopResetBtn').addEventListener('click', () =>
+            this.resetCounter('counter5Top'));
+        
+        // Counter 5 Bottom
+        document.getElementById('counter5BottomPlusBtn').addEventListener('click', () =>
+            this.incrementCounter('counter5Bottom'));
+        document.getElementById('counter5BottomResetBtn').addEventListener('click', () =>
+            this.resetCounter('counter5Bottom'));
+    }
+    
+    incrementCounter(counterId) {
+        const previousValue = this.counters[counterId];
+        this.counters[counterId]++;
+        this.displays[counterId].textContent = this.counters[counterId];
+        
+        // Push undo operation
+        undoManager.pushOperation({
+            undo: () => {
+                this.counters[counterId] = previousValue;
+                this.displays[counterId].textContent = previousValue;
+            }
+        });
+    }
+    
+    resetCounter(counterId) {
+        const previousValue = this.counters[counterId];
+        
+        // Push undo operation
+        undoManager.pushOperation({
+            undo: () => {
+                this.counters[counterId] = previousValue;
+                this.displays[counterId].textContent = previousValue;
+            }
+        });
+        
+        this.counters[counterId] = 0;
+        this.displays[counterId].textContent = 0;
+    }
+    
+    updateAllDisplays() {
+        Object.keys(this.counters).forEach(counterId => {
+            this.displays[counterId].textContent = this.counters[counterId];
+        });
+    }
+    
+    resetAll() {
+        Object.keys(this.counters).forEach(counterId => {
+            this.counters[counterId] = 0;
+        });
+        this.updateAllDisplays();
+    }
+}
+
+// Global additional counters instance
+let additionalCounters = null;
+
 // Global score tracker instance
 let scoreTracker = null;
 
@@ -701,6 +842,11 @@ function resetAll() {
         scoreTracker.reset();
     }
     
+    // Reset additional counters
+    if (additionalCounters) {
+        additionalCounters.resetAll();
+    }
+    
     // Clear undo stack
     undoManager.clear();
 }
@@ -711,6 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
     targetsDeckUI = new DeckUI('targets', TARGETS_DATA);
     eventsDeckUI = new DeckUI('events', EVENTS_DATA);
     scoreTracker = new ScoreTracker();
+    additionalCounters = new AdditionalCounters();
     
     // Initialize Reset All button
     const resetAllBtn = document.getElementById('globalResetAllBtn');
